@@ -43,6 +43,8 @@ func (p *demoProcessor) Process(message *mq.Message) error {
 	err := json.Unmarshal(message.Data, data)
 	fmt.Println(err, data)
 
+	time.Sleep(time.Second * 10)
+
 	return nil
 }
 

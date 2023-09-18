@@ -2,6 +2,7 @@ package redis
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/goinbox/golog"
 	"github.com/goinbox/mq"
@@ -21,6 +22,7 @@ type consumer struct {
 
 	processor mq.MessageProcessor
 
+	wg       sync.WaitGroup
 	waitExit bool
 	waitCh   chan struct{}
 }
@@ -76,11 +78,13 @@ func (c *consumer) consumeLoopRoutine(ctx pcontext.Context) {
 			if c.waitExit {
 				logger.Notice("wait all messages process done")
 				_ = c.processor.Wait()
+				c.wg.Wait()
 				close(c.waitCh)
 				return
 			}
 		} else {
-			c.processMessage(ctx, message)
+			c.wg.Add(1)
+			go c.processMessage(ctx, message)
 		}
 	}
 }
@@ -119,6 +123,8 @@ func (c *consumer) parseMessage(reply *redis.Reply) (message *mq.Message, err er
 }
 
 func (c *consumer) processMessage(ctx pcontext.Context, message *mq.Message) {
+	defer c.wg.Done()
+
 	logger := ctx.Logger()
 	logger.Notice("process message", []*golog.Field{
 		{
