@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	streamKeyDemo = "lightglobal"
+	streamKeyDemo = "demo"
 )
 
 var ctx pcontext.Context
@@ -22,7 +22,7 @@ var client *redis.Client
 func init() {
 	w, _ := golog.NewFileWriter("/dev/stdout", 0)
 	logger := golog.NewSimpleLogger(w, golog.NewSimpleFormater())
-	ctx = pcontext.NewSimpleContext(logger)
+	ctx = pcontext.NewSimpleContext(nil, logger)
 
 	config := redis.NewConfig("127.0.0.1", "123", 6379)
 	client = redis.NewClient(config)

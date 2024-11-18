@@ -111,8 +111,14 @@ func (c *consumer) parseMessage(reply *redis.Reply) (message *mq.Message, err er
 		}
 	}()
 
-	value := reply.Value().(map[interface{}]interface{})
-	data := value[c.config.StreamKey].([]interface{})[0].([]interface{})
+	var data []interface{}
+	rows, ok := reply.Value().([]interface{})
+	if ok {
+		data = rows[0].([]interface{})[1].([]interface{})[0].([]interface{})
+	} else {
+		value := reply.Value().(map[interface{}]interface{})
+		data = value[c.config.StreamKey].([]interface{})[0].([]interface{})
+	}
 
 	message = &mq.Message{
 		ID:   data[0].(string),
